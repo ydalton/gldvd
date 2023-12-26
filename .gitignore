@@ -1,0 +1,4 @@
+gldvd
+*.o
+*.glsl.h
+.cache/
