@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <getopt.h>
+#include <setjmp.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -20,6 +21,8 @@
 #define W_HEIGHT 	1080
 #define W_NAME		"gldvd"
 #define DEFAULT_IMAGE	"dvd.png"
+
+static jmp_buf jmpbuf;
 
 struct application {
 	GLFWwindow *window;
@@ -42,23 +45,43 @@ static void app_init(void)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 }
 
+static struct application *app_alloc(void)
+{
+	struct application *app;
+
+	app = (struct application *) calloc(1, sizeof(*app));
+
+	return app;
+}
+
+static void app_free(struct application *app)
+{
+	if(!app)
+		return;
+	free(app);
+}
+
 void app_resize(GLFWwindow *win, int width, int height) 
 {
 	(void) win;
 	glViewport(0, 0, width, height);
 }
 
-static void app_destroy(void)
+static void app_destroy(struct application *app)
 {
+	app_free(app);
 	glfwTerminate();
 }
 
-static void draw()
+static void key_callback(GLFWwindow* window, int key, int scancode, int action,
+			 int mods)
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	(void) window;
+	(void) scancode;
+	(void) mods;
+	/* press q to quit */
+	if(key == GLFW_KEY_Q && action == GLFW_PRESS)
+		longjmp(jmpbuf, 1);
 }
 
 static void change_color(glm::vec3 &col)
@@ -99,6 +122,7 @@ static void app_loop(struct application *app)
 	glViewport(0, 0, app->width, app->height);
 
 	glfwSetFramebufferSizeCallback(app->window, app_resize);
+	glfwSetKeyCallback(app->window, key_callback);
 	if(app->fullscreen)
 		glfwSetInputMode(app->window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
@@ -154,13 +178,14 @@ static void app_loop(struct application *app)
 
 #define COLLISION(x, size_x) ((x + size_x/2) > 1.0f || (x - size_x/2) < -1.0f)
 
-	while(!glfwWindowShouldClose(win)) {
+	while(!glfwWindowShouldClose(win) && !setjmp(jmpbuf)) {
 		glfwPollEvents();
 		model = glm::translate(model, movement);
 		GL_UNIFORM_MATRIX_4FV(app->program, "model", 1, GL_FALSE, 
 				      glm::value_ptr(model));
 		GL_UNIFORM_4F(app->program, "ourColor", color.x, color.y, color.z, 
 			      1.0f);
+
 		if(COLLISION(*(dvd->x), *(dvd->size_x))) {
 			movement[0] *= -1.0f;
 			change_color(color);
@@ -169,29 +194,22 @@ static void app_loop(struct application *app)
 			movement[1] *= -1.0f;
 			change_color(color);
 		}
-		draw();
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
 		glfwSwapBuffers(win);
 	}
 
+	glDeleteProgram(app->program);
+	glDeleteTextures(1, &vao);
+	glDeleteVertexArrays(1, &vao);
+	glDeleteBuffers(1, &vbo);
 }
 
 #undef COLLISION
 
-static struct application *app_alloc(void)
-{
-	struct application *app;
-
-	app = (struct application *) calloc(1, sizeof(*app));
-
-	return app;
-}
-
-static void app_free(struct application *app)
-{
-	if(!app)
-		return;
-	free(app);
-}
 
 static void usage(int code, const char *name)
 {
@@ -218,7 +236,12 @@ int main(int argc, char **argv)
 			app->fullscreen = 1;
 			break;
 		case 'i':
-			app->image_name = optarg;
+			if(file_is_png(optarg))
+				app->image_name = optarg;
+			else {
+				fprintf(stderr, "Specified image is not a PNG. Quitting...\n");
+				exit(-1);
+			}
 			break;
 		case '?':
 			usage(-1, app->name);
@@ -241,9 +264,7 @@ int main(int argc, char **argv)
 	}
 
 	app_loop(app);
-
-	app_free(app);
-	app_destroy();
+	app_destroy(app);
 
 	return 0;
 }

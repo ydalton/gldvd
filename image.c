@@ -22,10 +22,6 @@ char *png_to_fb(const char *filename, unsigned int *width, unsigned int *height)
 	if(!fp)
 		return NULL;
 
-
-
-	free(buf);
-
 	png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if(!png)
 		goto out;
@@ -33,9 +29,6 @@ char *png_to_fb(const char *filename, unsigned int *width, unsigned int *height)
 	info = png_create_info_struct(png);
 	if(!info)
 		goto out;
-
-	if(setjmp(png_jmpbuf(png)))
-		goto setjmp_fail;
 
 	color_type = png_get_color_type(png, info);
 	if(color_type == PNG_COLOR_TYPE_RGB
@@ -60,7 +53,6 @@ char *png_to_fb(const char *filename, unsigned int *width, unsigned int *height)
 		memcpy(buf + (row_bytes * (*height - 1 - i)), row_pointers[i], row_bytes);
 	}
 
-setjmp_fail:
 	png_destroy_read_struct(&png, &info, NULL);
 out:
 	fclose(fp);
