@@ -15,22 +15,14 @@ char *png_to_fb(const char *filename, unsigned int *width, unsigned int *height)
 	FILE *fp;
 	char *buf = NULL;
 	int bit_depth;
+	int color_type;
 	unsigned int row_bytes;
 
 	fp = fopen(filename, "rb");
 	if(!fp)
 		return NULL;
 
-	/* check if file is png */
-	/*
-	buf = calloc(1, PNG_NUM_BYTES);
-	fread(buf, sizeof(char), PNG_NUM_BYTES, fp);
-	if(png_sig_cmp(buf, 0, 4)) {
-		free(buf);
-		buf = NULL;
-		goto out;
-	}
-	*/
+
 
 	free(buf);
 
@@ -44,6 +36,12 @@ char *png_to_fb(const char *filename, unsigned int *width, unsigned int *height)
 
 	if(setjmp(png_jmpbuf(png)))
 		goto setjmp_fail;
+
+	color_type = png_get_color_type(png, info);
+	if(color_type == PNG_COLOR_TYPE_RGB
+	   || color_type == PNG_COLOR_TYPE_GRAY
+	   || color_type == PNG_COLOR_TYPE_PALETTE)
+		png_set_filler(png, 0xFF, PNG_FILLER_AFTER);
 
 	png_init_io(png, fp);
 
@@ -67,4 +65,9 @@ setjmp_fail:
 out:
 	fclose(fp);
 	return buf;
+}
+
+int file_is_png(const char *name)
+{
+	return 1;
 }

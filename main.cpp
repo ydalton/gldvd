@@ -1,6 +1,7 @@
 #include <stdlib.h> 
 #include <stdio.h>
-#include <assert.h>
+#include <string.h>
+#include <getopt.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -18,12 +19,15 @@
 #define W_WIDTH 	1920
 #define W_HEIGHT 	1080
 #define W_NAME		"gldvd"
+#define DEFAULT_IMAGE	"dvd.png"
 
 struct application {
 	GLFWwindow *window;
 	int width, height;
 	const char *name;
+	const char *image_name;
 	unsigned int program;
+	unsigned int fullscreen;
 };
 
 struct box {
@@ -95,8 +99,10 @@ static void app_loop(struct application *app)
 	glViewport(0, 0, app->width, app->height);
 
 	glfwSetFramebufferSizeCallback(app->window, app_resize);
+	if(app->fullscreen)
+		glfwSetInputMode(app->window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
-	buf = png_to_fb("dvd.png", &width, &height);
+	buf = png_to_fb(app->image_name, &width, &height);
 	if(!buf) {
 		fprintf(stderr, "Failed to load image!\n");
 		return;
@@ -187,19 +193,48 @@ static void app_free(struct application *app)
 	free(app);
 }
 
-int main(void)
+static void usage(int code, const char *name)
 {
-	struct application *app;
+	printf("usage: %s [-f] [-i IMAGE]\n", name);
+	exit(code);
+}
 
-	app_init();
+int main(int argc, char **argv)
+{
+	GLFWmonitor *mon = NULL;
+	struct application *app;
+	int c;
 
 	app = app_alloc();
 	app->width = W_WIDTH;
 	app->height = W_HEIGHT;
 	app->name = W_NAME;
+	app->image_name = DEFAULT_IMAGE;
+	app->fullscreen = 0;
+
+	while((c = getopt(argc, argv, "fi:")) != -1) {
+		switch(c) {
+		case 'f':
+			app->fullscreen = 1;
+			break;
+		case 'i':
+			app->image_name = optarg;
+			break;
+		case '?':
+			usage(-1, app->name);
+			break;
+		default:
+			usage(-1, app->name);
+		}
+	}
+
+	app_init();
+
+	if(app->fullscreen)
+		mon = glfwGetPrimaryMonitor();
 
 	app->window = glfwCreateWindow(app->width, app->height, app->name, 
-				       NULL, NULL);
+				       mon, NULL);
 	if(!app->window) {
 		fprintf(stderr, "Failed to create window!\n");
 		return -1;
