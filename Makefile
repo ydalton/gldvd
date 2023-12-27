@@ -7,21 +7,27 @@ BIN 		:= gldvd
 
 
 $(BIN): $(OBJ)
-	$(CXX) -o $(BIN) $(OBJ) $(LDFLAGS)
+	@echo "  LD	" $(BIN)
+	@$(CXX) -o $(BIN) $(OBJ) $(LDFLAGS)
 
 draw.o: draw.cpp $(GLSL_H)
-	$(CXX) -c -o $@ $< $(CXXFLAGS)
+	@echo "  CXX	" $@
+	@$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 %.o: %.cpp 
-	$(CXX) -c -o $@ $< $(CXXFLAGS)
+	@echo "  CXX	" $@
+	@$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 %.o: %.c
-	$(CC) -c -o $@ $< $(CFLAGS)
+	@echo "  CC	" $@
+	@$(CC) -c -o $@ $< $(CFLAGS)
 
 %.glsl.h: %.glsl
-	tts $< > $@
+	@echo "  TTS	" $@
+	@tts $< > $@
 
 clean:
-	rm -f $(OBJ) $(BIN) $(GLSL_H)
+	@echo "  CLEAN	" $(OBJ) $(BIN) $(GLSL_H)
+	@rm -f $(OBJ) $(BIN) $(GLSL_H)
 
 .PHONY: $(BIN) clean
