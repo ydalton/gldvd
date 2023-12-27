@@ -1,7 +1,7 @@
 CFLAGS 		:= -O2 -Wall -Wextra -Wpedantic
 CXXFLAGS 	:= $(CFLAGS)
 LDFLAGS 	:= -lGL -lglfw -lGLEW -lpng
-OBJ 		:= main.o shader.o image.o
+OBJ 		:= main.o shader.o image.o app.o
 GLSL_H		:= vert.glsl.h frag.glsl.h
 BIN 		:= gldvd
 

@@ -1,4 +1,4 @@
-#include <stdlib.h> 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <getopt.h>
@@ -12,65 +12,22 @@
 
 #include "shader.h"
 #include "image.h"
-#include "util.h"
+#include "app.h"
 
 #include "vert.glsl.h"
 #include "frag.glsl.h"
 
-#define W_WIDTH 	1920
-#define W_HEIGHT 	1080
-#define W_NAME		"gldvd"
-#define DEFAULT_IMAGE	"dvd.png"
-
 static jmp_buf jmpbuf;
-
-struct application {
-	GLFWwindow *window;
-	int width, height;
-	const char *name;
-	const char *image_name;
-	unsigned int program;
-	unsigned int fullscreen;
-};
 
 struct box {
 	float *x, *y, *size_x, *size_y;
 };
 
-static void app_init(void) 
-{
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-}
-
-static struct application *app_alloc(void)
-{
-	struct application *app;
-
-	app = (struct application *) calloc(1, sizeof(*app));
-
-	return app;
-}
-
-static void app_free(struct application *app)
-{
-	if(!app)
-		return;
-	free(app);
-}
 
 void app_resize(GLFWwindow *win, int width, int height) 
 {
 	(void) win;
 	glViewport(0, 0, width, height);
-}
-
-static void app_destroy(struct application *app)
-{
-	app_free(app);
-	glfwTerminate();
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action,
