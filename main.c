@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <getopt.h>
 
-#include <GLFW/glfw3.h>
-
 #include "image.h"
 #include "app.h"
 

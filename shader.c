@@ -3,6 +3,8 @@
 
 #include <GL/glew.h>
 
+#include "shader.h"
+
 unsigned int compile_shader(const char *src, int type)
 {
 	unsigned int shader;

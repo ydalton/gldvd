@@ -61,5 +61,6 @@ out:
 
 int file_is_png(const char *name)
 {
+	/* TODO: actually do stuff */
 	return 1;
 }
