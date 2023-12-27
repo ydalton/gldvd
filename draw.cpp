@@ -1,7 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include <getopt.h>
 #include <setjmp.h>
 
 #include <GL/glew.h>
@@ -10,9 +8,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "shader.h"
-#include "image.h"
 #include "app.h"
+#include "image.h"
+#include "shader.h"
 
 #include "vert.glsl.h"
 #include "frag.glsl.h"
@@ -22,13 +20,6 @@ static jmp_buf jmpbuf;
 struct box {
 	float *x, *y, *size_x, *size_y;
 };
-
-
-void app_resize(GLFWwindow *win, int width, int height) 
-{
-	(void) win;
-	glViewport(0, 0, width, height);
-}
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action,
 			 int mods)
@@ -41,6 +32,12 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action,
 		longjmp(jmpbuf, 1);
 }
 
+static void app_resize(GLFWwindow *win, int width, int height) 
+{
+	(void) win;
+	glViewport(0, 0, width, height);
+}
+
 static void change_color(glm::vec3 &col)
 {
 	float time = glfwGetTime() * 3;
@@ -48,7 +45,7 @@ static void change_color(glm::vec3 &col)
 	col = glm::vec3(abs(cos(time*2)), abs(sin(time/3)), abs(cos(time*7)));
 }
 
-static void app_loop(struct application *app)
+void app_loop(struct application *app)
 {
 	GLFWwindow *win = app->window;
 	struct box *dvd;
@@ -166,62 +163,3 @@ static void app_loop(struct application *app)
 }
 
 #undef COLLISION
-
-
-static void usage(int code, const char *name)
-{
-	printf("usage: %s [-f] [-i IMAGE]\n", name);
-	exit(code);
-}
-
-int main(int argc, char **argv)
-{
-	GLFWmonitor *mon = NULL;
-	struct application *app;
-	int c;
-
-	app = app_alloc();
-	app->width = W_WIDTH;
-	app->height = W_HEIGHT;
-	app->name = W_NAME;
-	app->image_name = DEFAULT_IMAGE;
-	app->fullscreen = 0;
-
-	while((c = getopt(argc, argv, "fi:")) != -1) {
-		switch(c) {
-		case 'f':
-			app->fullscreen = 1;
-			break;
-		case 'i':
-			if(file_is_png(optarg))
-				app->image_name = optarg;
-			else {
-				fprintf(stderr, "Specified image is not a PNG. Quitting...\n");
-				exit(-1);
-			}
-			break;
-		case '?':
-			usage(-1, app->name);
-			break;
-		default:
-			usage(-1, app->name);
-		}
-	}
-
-	app_init();
-
-	if(app->fullscreen)
-		mon = glfwGetPrimaryMonitor();
-
-	app->window = glfwCreateWindow(app->width, app->height, app->name, 
-				       mon, NULL);
-	if(!app->window) {
-		fprintf(stderr, "Failed to create window!\n");
-		return -1;
-	}
-
-	app_loop(app);
-	app_destroy(app);
-
-	return 0;
-}

@@ -1,7 +1,7 @@
 CFLAGS 		:= -O2 -Wall -Wextra -Wpedantic
 CXXFLAGS 	:= $(CFLAGS)
 LDFLAGS 	:= -lGL -lglfw -lGLEW -lpng
-OBJ 		:= main.o shader.o image.o app.o
+OBJ 		:= main.o shader.o image.o app.o draw.o
 GLSL_H		:= vert.glsl.h frag.glsl.h
 BIN 		:= gldvd
 
@@ -9,7 +9,7 @@ BIN 		:= gldvd
 $(BIN): $(OBJ)
 	$(CXX) -o $(BIN) $(OBJ) $(LDFLAGS)
 
-main.o: main.cpp $(GLSL_H)
+draw.o: draw.cpp $(GLSL_H)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 %.o: %.cpp 

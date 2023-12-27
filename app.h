@@ -29,9 +29,11 @@ void app_init(void);
 struct application *app_alloc(void);
 void app_free(struct application *app);
 void app_destroy(struct application *app);
+void app_loop(struct application *app);
 
 #ifdef __cplusplus
 }
 #endif
+
 
 #endif
