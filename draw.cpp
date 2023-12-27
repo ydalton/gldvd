@@ -41,7 +41,7 @@ static void change_color(glm::vec3 &col)
 {
 	float time = glfwGetTime() * 3;
 
-	col = glm::vec3(abs(cos(time*2)), abs(sin(time/3)), abs(cos(time*7)));
+	col = glm::vec3(fabs(cos(time*2)), fabs(sin(time/3)), fabs(cos(time*7)));
 }
 
 void app_loop(struct application *app)
